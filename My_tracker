@@ -1,0 +1,37 @@
+from visual import *
+import pykinect
+from pykinect import nui
+from pykinect.nui import JointId
+
+class Skeleton:
+
+	def __init__(self):
+
+		self.joints = [None]*20
+
+	def update(self):
+
+		updated = False
+
+		for skeleton in _kinect.skeleton_engine.get_next_frame().SkeletonData:
+
+			if (skeleton.eTrackingState == nui.SkeletonTrackingState.TRACKED):
+
+				for a, p in zip(range(20), skeleton.SkeletonPositions):
+
+					self.joints[a] = [p.x, p.y, p.z]
+
+				updated = True
+
+		return updated
+
+_kinect = nui.Runtime()
+_kinect.skeleton_engine.enabled = True
+_kinect.camera.elevation_angle = 0
+
+if __name__ == '__main__':
+
+	while True:
+
+		rate(30)
+		capture = skeleton.update()
