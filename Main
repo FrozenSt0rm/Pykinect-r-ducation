@@ -1,0 +1,56 @@
+import os
+
+erreur1 = False
+erreur2 = False
+texte1 = 'Aïe...le programme commporte une ou plusieurs erreurs :'
+texte2 = '1) Un ou plusieurs modules ne sont pas installés.'
+texte3 = '''2) La kinect n'est pas branchée ou n'est pas reconnue par le système.'''
+texte4 = 'Taper Entrée pour quitter.'
+
+try:
+	import pykinect, pygame, math, easygui, Tkinter, sys, ctypes, variables, classes, my_tracker
+except ImportError:
+	erreur1 = True
+except WindowsError:
+	erreur2 = True
+
+if (erreur1 is True) or (erreur2 is True):
+	print (texte1)
+	if (erreur1 is True):
+		print (texte2)
+	elif (erreur2 is True):
+		print (texte3)
+	print ('')
+	print (texte4)
+	try:
+		a = input()
+	except SyntaxError:
+		os._exit(1)
+	else:
+		os._exit(1)
+
+import ctypes
+import pykinect
+from classes import *
+from variables import *
+from pykinect import nui
+
+user32 = ctypes.windll.user32
+dimensions = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
+
+fullscreen = True
+
+print ("""
+TEST DE LA CAMERA:
+...""")
+
+with nui.Runtime() as kinect:
+	kinect.camera.elevation_angle = 0
+	kinect.camera.elevation_angle = 27
+	kinect.camera.elevation_angle = -27
+	kinect.camera.elevation_angle = 0
+
+print ("""...
+TEST TERMINE AVEC SUCCES.""")
+
+menu_1(titre_menu_1, onglet1_menu_1, onglet2_menu_1, onglet3_menu_1, dimensions,
