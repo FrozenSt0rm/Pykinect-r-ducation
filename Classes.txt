@@ -1,0 +1,1231 @@
+import pykinect, pygame, math, easygui, Tkinter, sys, ctypes, time, my_tracker
+from pykinect import nui
+from variables import *
+from pygame.locals import *
+from Tkinter import *
+from visual import *
+
+def exo_bras(alpha, dimensions, fullscreen):
+
+	pygame.init()
+
+	capture = my_tracker.Skeleton()
+	main = droite = True
+	raised = False
+
+	global s, arr, angle
+
+	s = c = 0
+	arr = []
+
+	with nui.Runtime() as kinect:
+		angle = kinect.camera.elevation_angle
+
+	while(True):
+		niveau = menu_niveau(titre_menu_n, onglet1_menu_n, onglet2_menu_n, onglet3_menu_n, alpha, dimensions, fullscreen)
+		if (niveau != 0):
+			break
+
+	if (niveau == 1):
+		angle_max = 20
+		repetition = 10
+	elif (niveau == 2):
+		angle_max = 30
+		repetition = 20
+	elif (niveau == 3):
+		angle_max = 45
+		repetition = 15
+
+	if (fullscreen is True):
+		screen = pygame.display.set_mode(dimensions2, FULLSCREEN)
+	else:
+		screen = pygame.display.set_mode(dimensions2)
+
+	police = pygame.font.Font(None, 100)
+
+	def video_frame_ready(frame):
+		frame.image.copy_bits(screen._pixels_address)
+		if (raised):
+			couleur1 = (255, 0, 0)
+			couleur2 = (0, 255, 0)
+		else:
+			couleur1 = (0, 255, 0)
+			couleur2 = (255, 0, 0)
+		if (visible):
+			s_r = capture.joints[4]
+			s_l = capture.joints[8]
+			w_r = capture.joints[6]
+			C = (s_r[0], s_r[1])
+			F = (s_l[0], s_l[1])
+			E = (w_r[0], w_r[1])
+			CF = round(math.sqrt((F[0]-C[0])**2+(F[1]-C[1])**2)*alpha, 3)
+			l = round(math.sqrt((E[0]-C[0])**2+(E[1]-C[1])**2), 3)
+			M_x = round(C[0]-math.degrees(math.sin(90-angle_max))*l*alpha, 3)
+			M_y = round(C[1]+math.degrees(math.cos(90-angle_max))*l*alpha, 3)
+			N_x = M_x
+			N_y = round(C[1]-M_y, 3)
+			O_x = round(F[0]+math.degrees(math.sin(90-angle_max))*l*alpha, 3)
+			O_y = round(F[1]+math.degrees(math.cos(90-angle_max))*l*alpha, 3)
+			P_x = O_x
+			P_y = round(F[1]-O_y, 3)
+			ligne1 = pygame.draw.line(screen, couleur1, (int((dimensions2[0]/2)+C[0]*alpha), int((dimensions2[1]/2)-C[1]*alpha)), (int((dimensions2[0]/2)+M_x), int((dimensions2[1]/2)-M_y)))
+			ligne2 = pygame.draw.line(screen, couleur2, (int((dimensions2[0]/2)+C[0]*alpha), int((dimensions2[1]/2)-C[1]*alpha)), (int((dimensions2[0]/2)+N_x), int((dimensions2[1]/2)-N_y)))
+			ligne3 = pygame.draw.line(screen, couleur1, (int((dimensions2[0]/2)+F[0]*alpha), int((dimensions2[1]/2)-F[1]*alpha)), (int((dimensions2[0]/2)+O_x), int((dimensions2[1]/2)-O_y)))
+			ligne4 = pygame.draw.line(screen, couleur2, (int((dimensions2[0]/2)+F[0]*alpha), int((dimensions2[1]/2)-F[1]*alpha)), (int((dimensions2[0]/2)+P_x), int((dimensions2[1]/2)-P_y)))
+		score = police.render(str(repetition) , 1, (0, 0, 255))
+		screen.blit(score, (int((dimensions2[0]-score.get_width())/2), int((dimensions2[1]-score.get_height())/2)))
+		pygame.display.update()
+
+	while (main is True):
+		with nui.Runtime() as kinect:
+			kinect.video_frame_ready += video_frame_ready
+			kinect.video_stream.open(nui.ImageStreamType.Video, 2, nui.ImageResolution.Resolution640x480, nui.ImageType.Color)
+
+			while(True):
+				rate(30)
+				visible = capture.update()
+
+				for e in pygame.event.get():
+					if (e.type == QUIT) or (e.type == KEYDOWN) and (e.key == K_ESCAPE):
+						c = 'quit'
+						main = False
+
+				if (visible):
+					h_c = capture.joints[0]
+					s_c = capture.joints[2]
+					s_r = capture.joints[4]
+					e_r = capture.joints[5]
+					w_r = capture.joints[6]
+					s_l = capture.joints[8]
+					e_l = capture.joints[9]
+					w_l = capture.joints[10]
+					A = (h_c[0], h_c[1])
+					B = (s_c[0], s_c[1])
+					C = (s_r[0], s_r[1])
+					D = (e_r[0], e_r[1])
+					E = (w_r[0], w_r[1])
+					F = (s_l[0], s_l[1])
+					G = (e_l[0], e_l[1])
+					H = (w_l[0], w_l[1])
+					M = (D[0], C[1])
+					N = (E[0], C[1])
+					O = (G[0], F[1])
+					P = (H[0], F[1])
+					CM = round(math.sqrt((M[0]-C[0])**2+(M[1]-C[1])**2), 3)
+					CD = round(math.sqrt((D[0]-C[0])**2+(D[1]-C[1])**2), 3)
+					CN = round(math.sqrt((N[0]-C[0])**2+(N[1]-C[1])**2), 3)
+					CE = round(math.sqrt((E[0]-C[0])**2+(E[1]-C[1])**2), 3)
+					FO = round(math.sqrt((O[0]-F[0])**2+(O[1]-F[1])**2), 3)
+					FG = round(math.sqrt((G[0]-F[0])**2+(G[1]-F[1])**2), 3)
+					FP = round(math.sqrt((P[0]-F[0])**2+(P[1]-F[1])**2), 3)
+					FH = round(math.sqrt((H[0]-F[0])**2+(H[1]-F[1])**2), 3)
+
+					try:
+						MCD = round(math.degrees(math.acos(CM/CD)), 5)
+						NCE = round(math.degrees(math.acos(CN/CE)), 5)
+						OFG = round(math.degrees(math.acos(FO/FG)), 5)
+						PFH = round(math.degrees(math.acos(FP/FH)), 5)
+					except ZeroDivisionError:
+						MCD = NCE = OFG = PFH = 0
+					except ValueError:
+						MCD = NCE = OFG = PFH = 0
+
+					if (abs(MCD-NCE)<=10) and (abs(OFG-PFH)<=10) and (MCD>=angle_max) and (OFG>=angle_max) and (abs(A[0]-B[0])<=0.1):
+						if (raised is True) and (D[1]<C[1]) and (G[1]<F[1]):
+							raised = False
+							repetition -=1
+						elif (raised is False) and (D[1]>C[1]) and (G[1]>F[1]):
+							raised = True
+
+					if (repetition == 0):
+						main = False
+
+				if (main == False):
+					break
+
+	if (c == 'quit'):
+		menu_quitter(dimensions, fullscreen)
+	else:
+		menu_2(titre_menu_2, onglet1_menu_2, onglet2_menu_2, onglet3_menu_2, 0, dimensions, fullscreen)
+
+###Wassim (fait)
+
+def exo_jambe(alpha, dimensions, fullscreen):
+
+	pygame.init()
+
+	capture = my_tracker.Skeleton()
+	main = droite = True
+	raised = False
+
+	global s, arr, angle
+
+	s =  c = 0
+	arr = []
+
+	with nui.Runtime() as kinect:
+		angle = kinect.camera.elevation_angle
+
+	while(True):
+		niveau = menu_niveau(titre_menu_n, onglet1_menu_n, onglet2_menu_n, onglet3_menu_n, alpha, dimensions, fullscreen)
+		if (niveau != 0):
+			break
+
+	if (niveau == 1):
+		angle_max = 20
+		repetition = 10
+	elif (niveau == 2):
+		angle_max = 30
+		repetition = 20
+	elif (niveau == 3):
+		angle_max = 45
+		repetition = 15
+
+	compt = repetition
+
+	if (fullscreen is True):
+		screen = pygame.display.set_mode(dimensions2, FULLSCREEN)
+	else:
+		screen = pygame.display.set_mode(dimensions2)
+
+	police = pygame.font.Font(None, 100)
+
+	def video_frame_ready(frame):
+		frame.image.copy_bits(screen._pixels_address)
+		score = police.render(str(compt) , 1, (0, 255, 0))
+		screen.blit(score, (int((dimensions2[0]-score.get_width())/2), int((dimensions2[1]-score.get_height())/2)))
+		pygame.display.update()
+
+	while (main is True):
+		with nui.Runtime() as kinect:
+			kinect.video_frame_ready += video_frame_ready
+			kinect.video_stream.open(nui.ImageStreamType.Video, 2, nui.ImageResolution.Resolution640x480, nui.ImageType.Color)
+
+			while (True):
+				rate(30)
+				visible = capture.update()
+
+				for e in pygame.event.get():
+					if (e.type == QUIT) or (e.type == KEYDOWN) and (e.key == K_ESCAPE):
+						c = 'quit'
+						main = False
+
+				if (visible):
+
+					h_c = capture.joints[0]
+					s_c = capture.joints[2]
+					h_r = capture.joints[12]
+					k_r = capture.joints[13]
+					a_r = capture.joints[14]
+					h_l = capture.joints[15]
+					k_l = capture.joints[16]
+					a_l = capture.joints[17]
+
+					A = (s_c[0], s_c[1])
+					B = (h_c[0], h_c[1])
+					C = (h_r[0], h_r[1])
+					D = (k_r[0], k_r[1])
+					E = (a_r[0], a_r[1])
+					F = (h_l[0], h_l[1])
+					G = (k_l[0], k_l[1])
+					H = (a_l[0], a_l[1])
+					M = (C[0], D[1])
+					N = (C[0], E[1])
+					O = (F[0], G[1])
+					P = (F[0], H[1])
+
+					CM = round(math.sqrt((M[0]-C[0])**2+(M[1]-C[1])**2), 3)
+					CD = round(math.sqrt((D[0]-C[0])**2+(D[1]-C[1])**2), 3)
+					CN = round(math.sqrt((N[0]-C[0])**2+(N[1]-C[1])**2), 3)
+					CE = round(math.sqrt((E[0]-C[0])**2+(E[1]-C[1])**2), 3)
+					FO = round(math.sqrt((O[0]-F[0])**2+(O[1]-F[1])**2), 3)
+					FG = round(math.sqrt((G[0]-F[0])**2+(G[1]-F[1])**2), 3)
+					FO = round(math.sqrt((O[0]-F[0])**2+(O[1]-F[1])**2), 3)
+					FP = round(math.sqrt((P[0]-F[0])**2+(P[1]-F[1])**2), 3)
+					FH = round(math.sqrt((H[0]-F[0])**2+(H[1]-F[1])**2), 3)
+
+					try:
+						DCM = round(math.degrees(math.cos(CM/CD)), 5)
+						ECN = round(math.degrees(math.cos(CN/CE)), 5)
+						OFG = round(math.degrees(math.cos(FO/FG)), 5)
+						PFH = round(math.degrees(math.cos(FP/FH)), 5)
+					except ZeroDivisionError:
+						DCM = ECN = OFG = PFH = 0
+					except ValueError:
+						DCM = ECN = OFG = PFH = 0
+
+					if (P[0]-N[0]>0) and (abs(A[0]-B[0])<=0.1) and (abs(OFG-PFH)<=10) and (abs(DCM-ECN)<=10):
+						if (OFG>=angle_max) and not droite and not raised:
+							raised = True
+						elif (OFG<=5) and not droite and raised:
+							raised = False
+							compt -=1
+						if (DCM>=angle_max) and droite and not raised:
+							raised = True
+						elif (DCM<=5) and droite and raised:
+							raised = False
+							compt -=1
+
+					if (compt == 0) and droite:
+						droite = False
+						compt = repetition
+					elif (compt == 0) and not droite:
+						main = False
+
+				if (main is False):
+					break
+
+	if (c == 'quit'):
+		menu_quitter(dimensions, fullscreen)
+	else:
+		menu_2(titre_menu_2, onglet1_menu_2, onglet2_menu_2, onglet3_menu_2, 0, dimensions, fullscreen) 
+
+###Wassim (a finir)
+
+def exo_arbre(alpha, dimensions, fullscreen):
+
+	pygame.init()
+
+	capture = my_tracker.Skeleton()
+	main = droite = continuer = True
+	chrono = False
+
+	global s, arr, angle
+
+	s =  c = b = 0
+	arr = []
+
+	with nui.Runtime() as kinect:
+		angle = kinect.camera.elevation_angle
+
+	while(True):
+		niveau = menu_niveau(titre_menu_n, onglet1_menu_n, onglet2_menu_n, onglet3_menu_n, alpha, dimensions, fullscreen)
+		if (niveau != 0):
+			break
+
+	if (niveau == 1):
+		temps = 10
+	elif (niveau == 2):
+		temps = 20
+	elif (niveau == 3):
+		temps = 30
+
+	compt = temps
+
+	if (fullscreen is True):
+		screen = pygame.display.set_mode(dimensions2, FULLSCREEN)
+	else:
+		screen = pygame.display.set_mode(dimensions2)
+
+	police = pygame.font.Font(None, 100)
+
+	def video_frame_ready(frame):
+		frame.image.copy_bits(screen._pixels_address)
+		score = police.render(str(compt) , 1, (0, 255, 0))
+		screen.blit(score, (int((dimensions2[0]-score.get_width())/2), int((dimensions2[1]-score.get_height())/2)))
+		pygame.display.update()
+
+	while (main is True):
+		with nui.Runtime() as kinect:
+			kinect.video_frame_ready += video_frame_ready
+			kinect.video_stream.open(nui.ImageStreamType.Video, 2, nui.ImageResolution.Resolution640x480, nui.ImageType.Color)
+
+			while (True):
+				rate(30)
+				visible = capture.update()
+
+				for e in pygame.event.get():
+					if (e.type == QUIT) or (e.type == KEYDOWN) and (e.key == K_ESCAPE):
+						c = 'quit'
+						main = False
+
+				if (continuer):
+					init_time = time.time()
+					continuer = False
+
+				if (visible):
+
+					h_c = capture.joints[0]
+					s_c = capture.joints[2]
+					h_r = capture.joints[12]
+					k_r = capture.joints[13]
+					a_r = capture.joints[14]
+					h_l = capture.joints[15]
+					k_l = capture.joints[16]
+					a_l = capture.joints[17]
+
+					A = (s_c[0], s_c[1])
+					B = (h_c[0], h_c[1])
+					C = (h_r[0], h_r[1])
+					D = (k_r[0], k_r[1])
+					E = (a_r[0], a_r[1])
+					F = (h_l[0], h_l[1])
+					G = (k_l[0], k_l[1])
+					H = (a_l[0], a_l[1])
+
+					DE = round(math.sqrt((E[0]-D[0])**2+(E[1]-D[1])**2), 3)
+					GH = round(math.sqrt((H[0]-G[0])**2+(H[1]-G[1])**2), 3)
+
+					if (droite):
+						if (abs(A[0]-B[0])<=0.1) and (abs(DE - GH)<=0.1) and (abs(E[0]-G[0])<=0.1) and (abs(E[1]-G[1])<=0.1):
+							chrono = True
+						else:
+							continuer = True
+							chrono = False
+					else:
+						if (abs(A[0]-B[0])<=0.1) and (abs(DE - GH)<=0.1) and (abs(H[0]-D[0])<=0.1) and (abs(H[1]-D[1])<=0.1):
+							chrono = True
+						else:
+							continuer = True
+							chrono = False
+
+					if (chrono):
+						time2 = time.time()
+						delta_temps =  math.floor(time2 - init_time)
+
+						if (compt > 0) and (b!=delta_temps):
+							compt -=1
+							b = delta_temps
+
+					if (compt == 0):
+						if (droite == True):
+							droite = False
+							compt = temps
+						else:
+							main = False
+
+				if (main is False):
+					break
+
+	if (c == 'quit'):
+		menu_quitter(dimensions, fullscreen)
+	else:
+		menu_2(titre_menu_2, onglet1_menu_2, onglet2_menu_2, onglet3_menu_2, 0, dimensions, fullscreen) 
+
+###Wassim (a finir)
+
+def initialisation(dimensions, fullscreen):
+
+	pygame.init()
+
+	capture = my_tracker.Skeleton()
+
+	main = variables = True
+	initialisation = False
+
+	global s, arr, angle, centre3
+
+	centre = (int(dimensions2[0]/3), int(dimensions2[1]/3))
+	centre2 = (int(2*dimensions2[0]/3), int(dimensions2[1]/3))
+	centre3 = (0, 0)
+	rayon = 10
+	rayon2 = 15
+
+	s = alpha = 0
+	arr = []
+	a = 10
+	b = 0
+	with nui.Runtime() as kinect:
+		angle = kinect.camera.elevation_angle
+
+	police = pygame.font.Font(None, 100)
+	police2 = pygame.font.Font(None, 50)
+
+	if (fullscreen is True):
+		screen = pygame.display.set_mode(dimensions2, FULLSCREEN)
+	else:
+		screen = pygame.display.set_mode(dimensions2)
+
+	def video_frame_ready(frame):
+		frame.image.copy_bits(screen._pixels_address)
+		if (initialisation is False):
+			temps = police.render(str(a) , 1, (0, 0, 255))
+			screen.blit(temps, (int(((dimensions2[0]-temps.get_width())/2)), int((dimensions2[1]/2))))
+			cercle = pygame.draw.circle(screen, (255, 0, 0), centre, rayon)
+			cercle2 = pygame.draw.circle(screen, (255, 0, 0), centre2, rayon)
+		else:
+			onglet1 = 'VALIDER - ENTREE'
+			onglet2 = 'RECOMMENCER - ESPACE'
+			texte_onglet1 = police2.render(onglet1, 1, (0, 255, 0))
+			texte_onglet2 = police2.render(onglet2, 1, (255, 0, 0))
+			screen.blit(texte_onglet1, (int((dimensions2[0]-texte_onglet1.get_width())/2), int(dimensions2[1]/2)))
+			screen.blit(texte_onglet2, (int((dimensions2[0]-texte_onglet2.get_width())/2), int(2*dimensions2[1]/3)))
+			tete = capture.joints[3]
+			main_droite = capture.joints[7]
+			main_gauche = capture.joints[11]
+			centre3 = (int((dimensions2[0]/2)+tete[0]*alpha), int((dimensions2[1]/2)-tete[1]*alpha))
+			centre4 = (int((dimensions2[0]/2)+main_droite[0]*alpha), int((dimensions2[1]/2)-main_droite[1]*alpha))
+			centre5 = (int((dimensions2[0]/2)+main_gauche[0]*alpha), int((dimensions2[1]/2)-main_gauche[1]*alpha))
+			cercle3 = pygame.draw.circle(screen, (255, 255, 255), centre3, rayon2)
+			cercle4 = pygame.draw.circle(screen, (0, 255, 0), centre4, rayon)
+			cercle5 = pygame.draw.circle(screen, (255, 0, 0), centre5, rayon)
+		pygame.display.flip()
+
+	while (main is True):
+		with nui.Runtime() as kinect:
+			kinect.video_frame_ready += video_frame_ready
+			kinect.video_stream.open(nui.ImageStreamType.Video, 2, nui.ImageResolution.Resolution640x480, nui.ImageType.Color)
+
+			while (True):
+				rate(30)
+				visible = capture.update()
+
+				for e in pygame.event.get():
+
+					if (e.type == KEYDOWN):
+
+						if (e.key == K_ESCAPE):
+							main = False
+
+						if (e.key == K_RETURN) or (e.key == K_KP_ENTER):
+
+							try:
+								menu_jeu(titre_menu_j, onglet1_menu_j, onglet2_menu_j, onglet3_menu_j, onglet4_menu_j, alpha, dimensions, fullscreen)
+							except WindowsError:
+								menu_jeu(titre_menu_j, onglet1_menu_j, onglet2_menu_j, onglet3_menu_j, onglet4_menu_j, alpha, dimensions, fullscreen)
+							else:
+								menu_jeu(titre_menu_j, onglet1_menu_j, onglet2_menu_j, onglet3_menu_j, onglet4_menu_j, alpha, dimensions, fullscreen)
+
+						elif (e.key == K_SPACE):
+
+							initialisation = False
+							variables = True
+							a = 10
+							b = 0
+
+				if (visible):
+
+					if (variables is True):
+
+						init_time = time.time()
+
+						variables = False
+
+					if (initialisation is False):
+						temps = time.time()
+						delta_temps =  math.floor(temps - init_time)
+
+						if (a > 0) and (b!=delta_temps):
+							a -=1
+							b = delta_temps
+
+						elif (a == 0):
+							initialisation = True
+
+							main_gauche = capture.joints[11]
+							main_droite = capture.joints[7]
+
+							AB = round(math.sqrt((centre[0]-centre2[0])**2+(centre[1]-centre2[1])**2), 3)
+							CD = round(math.sqrt((main_droite[0]-main_gauche[0])**2+(main_droite[1]-main_gauche[1])**2), 3)
+
+							alpha = AB / CD
+
+				if (main == False):
+					break
+
+	menu_quitter(dimensions, fullscreen)
+
+###Roger (fait)
+
+def angle_camera(dimensions, fullscreen):
+
+	pygame.init()
+
+	global screen, s, arr, angle
+
+	continuer = event = True
+
+	s = c = 0
+	with nui.Runtime() as kinect:
+		angle = kinect.camera.elevation_angle
+	arr = []
+
+	if (fullscreen is True):
+		screen = pygame.display.set_mode(dimensions2, FULLSCREEN)
+	else:
+		screen = pygame.display.set_mode(dimensions2)
+
+	def video_frame_ready(frame):
+		frame.image.copy_bits(screen._pixels_address)
+		font = pygame.font.SysFont('impact', 32, bold=False, italic=False)	
+		couleur_titre = (255, 0, 0)
+		texte_1 = 'FLECHE DU HAUT'
+		texte_2 = 'FLECHE DU BAS'
+		texte_3 = 'ENTREE'
+		texte_1 = font.render(texte_1, 1,couleur_titre)
+		texte_2 = font.render(texte_2, 1,couleur_titre)
+		texte_3 = font.render(texte_3, 1,couleur_titre)
+		screen.blit(texte_1, (int((dimensions2[0]-(texte_1.get_width()))/2), 0))
+		screen.blit(texte_2, (int((dimensions2[0]-(texte_2.get_width()))/2), int(dimensions2[1]-texte_2.get_height())))
+		screen.blit(texte_3, (int((dimensions2[0]-(texte_3.get_width()))/2), int((dimensions2[1]-(texte_3.get_height()))/2)))
+		pygame.display.update()
+
+	while (continuer is True):
+		with nui.Runtime() as kinect:
+			kinect.video_frame_ready += video_frame_ready
+			kinect.video_stream.open(nui.ImageStreamType.Video, 2, nui.ImageResolution.Resolution640x480, nui.ImageType.Color)        
+			while (event is True):
+				for e in pygame.event.get():
+					if (e.type == KEYDOWN):
+						if (e.key == K_ESCAPE):
+							c = 'quit'
+							continuer = event = False
+						if (e.key == K_DOWN):
+							kinect.camera.elevation_angle = kinect.camera.elevation_angle - 2
+						elif (e.key == K_UP):
+							kinect.camera.elevation_angle = kinect.camera.elevation_angle + 2
+						elif (e.key == K_RETURN) or (e.key == K_KP_ENTER):
+							continuer = False
+							event = False
+					elif (e.type == QUIT):
+						c = 'quit'
+						continuer = event = False
+				pygame.display.flip()
+
+	if (c=='quit'):
+		menu_quitter(dimensions, fullscreen)
+	else:
+		menu_parametres(titre_menu_p, onglet1_menu_p, onglet2_menu_p, onglet3_menu_p, dimensions, fullscreen)
+
+###Anthony (fait)
+
+def dimensions_fenetre(titre, onglet1, onglet2, onglet3, dimensions, fullscreen):
+
+	pygame.init()
+
+	if (fullscreen is True):
+		fenetre = pygame.display.set_mode(dimensions, FULLSCREEN)
+	else:
+		fenetre = pygame.display.set_mode(dimensions, RESIZABLE)
+
+	monitor = ctypes.windll.user32
+	monitor_dimensions = monitor.GetSystemMetrics(0), monitor.GetSystemMetrics(1)
+	selection = 0
+	continuer = True
+
+	font1 = pygame.font.SysFont('calibri', 72, bold=True, italic=False)
+	font2 = pygame.font.SysFont('impact', 48, bold=False, italic=True)
+	font3 = pygame.font.SysFont('impact', 48, bold=False, italic=False)
+
+	couleur_titre = (0, 0, 255)
+	couleur_onglets = (0, 0, 0)
+	couleur_selection = (255, 0, 0)
+
+	texte_dimension = font1.render(titre_menu_1, 1, couleur_onglets)
+	w_min = texte_dimension.get_width()
+	h_min = (5*texte_dimension.get_height())
+
+	dimensions_min =(w_min, h_min)
+
+	fond = pygame.image.load('images/background.png').convert()
+
+	def choix(s, dimensions, monitor_dimensions, fullscreen):
+
+		if (s==1):
+			fullscreen = True
+			dimensions = monitor_dimensions
+			fenetre = pygame.display.set_mode(dimensions, FULLSCREEN)
+		elif (s==2):
+			fullscreen = False
+			fenetre = pygame.display.set_mode(dimensions, RESIZABLE)
+		elif (s==3):
+			menu_parametres(titre_menu_p, onglet1_menu_p, onglet2_menu_p, onglet3_menu_p, dimensions, fullscreen)
+
+		dimensions_fenetre(titre_menu_d, onglet1_menu_d, onglet2_menu_d, onglet3_menu_d, dimensions, fullscreen)
+
+	while continuer is True:
+
+		texte_titre = font1.render(titre, 1, couleur_titre)
+
+		if (selection == 0):
+			texte_onglet1 = font3.render(onglet1, 1, couleur_onglets)
+			texte_onglet2 = font3.render(onglet2, 1, couleur_onglets)
+			texte_onglet3 = font3.render(onglet3, 1, couleur_onglets)
+		elif (selection == 1):
+			texte_onglet1 = font2.render(onglet1, 1, couleur_selection)
+			texte_onglet2 = font3.render(onglet2, 1, couleur_onglets)
+			texte_onglet3 = font3.render(onglet3, 1, couleur_onglets)
+		elif (selection == 2):
+			texte_onglet1 = font3.render(onglet1, 1, couleur_onglets)
+			texte_onglet2 = font2.render(onglet2, 1, couleur_selection)
+			texte_onglet3 = font3.render(onglet3, 1, couleur_onglets)
+		elif (selection == 3):
+			texte_onglet1 = font3.render(onglet1, 1, couleur_onglets)
+			texte_onglet2 = font3.render(onglet2, 1, couleur_onglets)
+			texte_onglet3 = font2.render(onglet3, 1, couleur_selection)
+
+		x_texte_titre = int((dimensions[0]-texte_titre.get_width())/2)
+		x_texte_onglet1 = int((dimensions[0]-texte_onglet1.get_width())/2)
+		x_texte_onglet2 = int((dimensions[0]-texte_onglet2.get_width())/2)
+		x_texte_onglet3 = int((dimensions[0]-texte_onglet3.get_width())/2)
+		y_texte_titre = int(((dimensions[1]/3)-texte_titre.get_height())/2)
+		y_texte_onglet1 = int(dimensions[1]/2)
+		y_texte_onglet2 = int(2*(dimensions[1]/3))
+		y_texte_onglet3 = int(5*(dimensions[1]/6))
+
+		fenetre.blit(fond, (0, 0))
+		fenetre.blit(texte_titre, (x_texte_titre, y_texte_titre))
+		fenetre.blit(texte_onglet1, (x_texte_onglet1, y_texte_onglet1))
+		fenetre.blit(texte_onglet2, (x_texte_onglet2, y_texte_onglet2))
+		fenetre.blit(texte_onglet3, (x_texte_onglet3, y_texte_onglet3))
+
+		for e in pygame.event.get():
+			if (e.type == KEYDOWN):
+				if (e.key == K_ESCAPE):
+					continuer = False
+				if (e.key == K_DOWN):
+					if (selection>=0) and (selection<3):
+						selection +=1
+					else:
+						selection = 1
+				elif (e.key == K_UP):
+					if (selection>1) and (selection<=3):
+						selection -=1
+					else:
+						selection = 3
+				elif (e.key == K_RETURN) or (e.key == K_KP_ENTER):
+					if (fullscreen is False):
+						dimensions = fenetre.get_size()
+					else:
+						dimensions = monitor_dimensions
+					choix(selection, dimensions, monitor_dimensions, fullscreen)
+			elif (e.type == VIDEORESIZE):
+				fenetre = pygame.display.set_mode(e.dict['size'], RESIZABLE)
+				dimensions = fenetre.get_size()
+				if (dimensions[0]<dimensions_min[0]):
+					x = dimensions_min[0]
+				else:
+					x = dimensions[0]
+				if (dimensions[1]<dimensions_min[1]):
+					y = dimensions_min[1]
+				else:
+					y = dimensions[1]
+				fenetre = pygame.display.set_mode((x, y), RESIZABLE)
+			elif (e.type == QUIT):
+				continuer = False
+
+		pygame.display.flip()
+
+	menu_quitter(dimensions, fullscreen)
+
+###Anthony (fait)
+
+def menu_quitter(dimensions, fullscreen):
+
+	def choix_quitter():
+		fenetre_2.destroy()
+		sys.exit()
+
+	pygame.quit()
+
+	fenetre_2 = Tkinter.Tk()
+
+	h = 100
+	w = 175
+
+	x = int((dimensions[0] - w)/2)
+	y = int((dimensions[1] - h)/2)
+
+	texte = Label(fenetre_2, text='Voulez-vous vraiment quitter ?').pack(side=TOP, ipady=20)
+	bouton_oui = Button(fenetre_2, text='OUI', bg='red', command=choix_quitter).pack(side=LEFT, padx=10, pady=5)
+	bouton_non = Button(fenetre_2, text='NON', bg='green', command=lambda:menu_1(titre_menu_1, onglet1_menu_1, onglet2_menu_1, onglet3_menu_1, dimensions, fenetre_2, fullscreen)).pack(side=RIGHT, padx=10, pady=5)
+
+	fenetre_2.geometry("%dx%d%+d%+d" % (w,h,x,y))
+
+	fenetre_2.mainloop()
+
+###Anthony (fait)
+
+def menu_niveau(titre, onglet1, onglet2, onglet3, alpha, dimensions, fullscreen):
+
+	pygame.init()
+
+	if (fullscreen is True):
+		fenetre = pygame.display.set_mode(dimensions, FULLSCREEN)
+	else:
+		fenetre = pygame.display.set_mode(dimensions)
+
+	selection = niveau = c = 0
+	continuer = True
+
+	font1 = pygame.font.SysFont('calibri', 72, bold=True, italic=False)
+	font2 = pygame.font.SysFont('impact', 48, bold=False, italic=True)
+	font3 = pygame.font.SysFont('impact', 48, bold=False, italic=False)
+
+	couleur_titre = (0, 0, 255)
+	couleur_onglets = (0, 0, 0)
+	couleur_selection = (255, 0, 0)
+
+	fond = pygame.image.load('images/background.png')
+
+	while (continuer is True):
+
+		niveau = selection
+
+		texte_titre = font1.render(titre, 1, couleur_titre)
+
+		if (selection == 0):
+			texte_onglet1 = font3.render(onglet1, 1, couleur_onglets)
+			texte_onglet2 = font3.render(onglet2, 1, couleur_onglets)
+			texte_onglet3 = font3.render(onglet3, 1, couleur_onglets)
+		elif (selection == 1):
+			texte_onglet1 = font2.render(onglet1, 1, couleur_selection)
+			texte_onglet2 = font3.render(onglet2, 1, couleur_onglets)
+			texte_onglet3 = font3.render(onglet3, 1, couleur_onglets)
+		elif (selection == 2):
+			texte_onglet1 = font3.render(onglet1, 1, couleur_onglets)
+			texte_onglet2 = font2.render(onglet2, 1, couleur_selection)
+			texte_onglet3 = font3.render(onglet3, 1, couleur_onglets)
+		elif (selection == 3):
+			texte_onglet1 = font3.render(onglet1, 1, couleur_onglets)
+			texte_onglet2 = font3.render(onglet2, 1, couleur_onglets)
+			texte_onglet3 = font2.render(onglet3, 1, couleur_selection)
+
+		x_texte_titre = int((dimensions[0]-texte_titre.get_width())/2)
+		x_texte_onglet1 = int((dimensions[0]-texte_onglet1.get_width())/2)
+		x_texte_onglet2 = int((dimensions[0]-texte_onglet2.get_width())/2)
+		x_texte_onglet3 = int((dimensions[0]-texte_onglet3.get_width())/2)
+		y_texte_titre = int(((dimensions[1]/3)-texte_titre.get_height())/2)
+		y_texte_onglet1 = int(dimensions[1]/2)
+		y_texte_onglet2 = int(2*(dimensions[1]/3))
+		y_texte_onglet3 = int(5*(dimensions[1]/6))
+
+		fenetre.blit(fond, (0, 0))
+		fenetre.blit(texte_titre, (x_texte_titre, y_texte_titre))
+		fenetre.blit(texte_onglet1, (x_texte_onglet1, y_texte_onglet1))
+		fenetre.blit(texte_onglet2, (x_texte_onglet2, y_texte_onglet2))
+		fenetre.blit(texte_onglet3, (x_texte_onglet3, y_texte_onglet3))
+
+		for e in pygame.event.get():
+			if (e.type == QUIT):
+				c = 'quit'
+				continuer = False
+			if (e.type == KEYDOWN):
+				if (e.key == K_ESCAPE):
+					c = 'quit'
+					continuer = False
+				if (e.key == K_DOWN):
+					if (selection>=0) and (selection<3):
+						selection +=1
+					else:
+						selection = 1
+				elif (e.key == K_UP):
+					if (selection>1) and (selection<=3):
+						selection -=1
+					else:
+						selection = 3
+				elif (e.key == K_RETURN) or (e.key == K_KP_ENTER):
+					continuer = False
+
+		pygame.display.flip()
+
+	if (c == 'quit'):
+		menu_quitter(dimensions, fullscreen)
+
+	return niveau
+
+###Gauthier (fait)
+
+def menu_jeu(titre, onglet1, onglet2, onglet3, onglet4, alpha, dimensions, fullscreen):
+
+	pygame.init()
+
+	capture = my_tracker.Skeleton()
+
+	global s, arr, angle
+
+	continuer = True
+	visible = False
+
+	s = selection = c = 0
+	arr = []
+	with nui.Runtime() as kinect:
+		angle = kinect.camera.elevation_angle
+
+	image0 = pygame.image.load(titre).convert()
+	image1 = pygame.image.load(onglet1).convert()
+	image2 = pygame.image.load(onglet2).convert()
+	image3 = pygame.image.load(onglet3).convert()
+	image4 = pygame.image.load(onglet4).convert()
+
+	image0.set_colorkey((255,255,255))
+	image1.set_alpha(150)
+	image2.set_alpha(150)
+	image3.set_alpha(150)
+	image4.set_alpha(150)
+
+	if (alpha == 0):
+		initialisation(dimensions, fullscreen)
+	
+	if (fullscreen is True):
+		screen = pygame.display.set_mode(dimensions2, FULLSCREEN)
+	else:
+		screen = pygame.display.set_mode(dimensions2)
+	
+	def choix(s):
+
+		if (s==1):
+			exo_bras(alpha, dimensions, fullscreen)
+		elif (s==2):
+			exo_jambe(alpha, dimensions, fullscreen)
+		elif (s==3):
+			exo_arbre(alpha, dimensions, fullscreen)
+		elif (s==4):
+			menu_2(titre_menu_2, onglet1_menu_2, onglet2_menu_2, onglet3_menu_2, 0, dimensions, fullscreen)
+
+	def video_frame_ready(frame):
+		frame.image.copy_bits(screen._pixels_address)
+
+		rayon = 10
+
+		if (visible):
+
+			main_droite = capture.joints[7]
+			main_gauche = capture.joints[11]
+			centre1 = (int((dimensions2[0]/2)+main_droite[0]*alpha), int((dimensions2[1]/2)-main_droite[1]*alpha))
+			centre2 = (int((dimensions2[0]/2)+main_gauche[0]*alpha), int((dimensions2[1]/2)-main_gauche[1]*alpha))
+			screen.blit(image0, (int((dimensions2[0]-image0.get_width())/2), int((dimensions2[1]-image0.get_height())/2)))
+			screen.blit(image1, (0, 0))
+			screen.blit(image2, (int(dimensions2[0]-image2.get_width()), 0))
+			screen.blit(image3, (0, int(dimensions2[1]-image3.get_height())))
+			screen.blit(image4, (int(dimensions2[0]-image2.get_width()), int(dimensions2[1]-image3.get_height())))
+			cercle1 = pygame.draw.circle(screen, (255, 0, 0), centre1, rayon)
+			cercle2 = pygame.draw.circle(screen, (0, 255, 0), centre2, rayon)
+
+		else:
+
+			centre1 = (int(dimensions2[0]/3), int(dimensions2[1]/3))
+			centre2 = (int(2*dimensions2[0]/3), int(dimensions2[1]/3))
+			cercle1 = pygame.draw.circle(screen, (255, 0, 0), centre1, rayon)
+			cercle2 = pygame.draw.circle(screen, (0, 255, 0), centre2, rayon)
+
+		pygame.display.update()
+
+	while (continuer is True):
+
+		with nui.Runtime() as kinect:
+
+			kinect.video_frame_ready += video_frame_ready
+			kinect.video_stream.open(nui.ImageStreamType.Video, 2, nui.ImageResolution.Resolution640x480, nui.ImageType.Color)
+
+			while (True):
+				rate(30)
+				visible = capture.update()
+
+				for e in pygame.event.get():
+					if (e.type == KEYDOWN) and (e.key == K_ESCAPE) or (e.type == QUIT):
+						c = 'quit'
+						continuer = False
+
+				if (visible is True):
+
+					main_droite = capture.joints[7]
+					main_gauche = capture.joints[11]
+
+					B = (int((dimensions2[0]/2)+main_gauche[0]*alpha), int((dimensions2[1]/2)-main_gauche[1]*alpha))
+					A = (int((dimensions2[0]/2)+main_droite[0]*alpha), int((dimensions2[1]/2)-main_droite[1]*alpha))
+
+					if (A[0]>=0) and (A[1]>=0) and (A[0]<=image1.get_width()) and (A[1]<=image1.get_height()):
+						c = 1
+						continuer = False
+					elif (A[0]>=0) and (A[1]>=dimensions2[1]-image3.get_height()) and (A[0]<=image3.get_width()) and (A[1]<=dimensions2[1]):
+						c = 3
+						continuer = False
+					elif (B[0]>=dimensions2[0]-image2.get_width()) and (B[1]>=0) and (B[0]<=dimensions2[0]) and (B[1]<=image2.get_height()):
+						c = 2
+						continuer = False
+					elif (B[0]>=dimensions2[0]-image4.get_width()) and (B[1]>=dimensions2[1]-image4.get_height()) and (B[0]<=dimensions2[0]) and (B[1]<=dimensions2[1]):
+						c = 4
+						continuer = False
+
+				if (continuer is False):
+					break
+
+	if (choix == 'quit'):
+		menu_quitter(dimensions, fullscreen)
+	else:				
+		choix(c) 
+
+####Roger (fait)
+	
+def menu_parametres(titre, onglet1, onglet2, onglet3, dimensions, fullscreen):
+
+	pygame.init()
+
+	if (fullscreen is True):
+		fenetre = pygame.display.set_mode(dimensions, FULLSCREEN)
+	else:
+		fenetre = pygame.display.set_mode(dimensions)
+
+	selection = 0
+	continuer = True
+
+	font1 = pygame.font.SysFont('calibri', 72, bold=True, italic=False)
+	font2 = pygame.font.SysFont('impact', 48, bold=False, italic=True)
+	font3 = pygame.font.SysFont('impact', 48, bold=False, italic=False)
+
+	couleur_titre = (0, 0, 255)
+	couleur_onglets = (0, 0, 0)
+	couleur_selection = (255, 0, 0)
+
+	fond = pygame.image.load('images/parametres.png')
+	fond = pygame.transform.scale(fond, (dimensions[0], dimensions[1]))
+	fond.set_alpha(150)
+
+	def choix(s):
+
+		if (s==1):
+			dimensions_fenetre(titre_menu_d, onglet1_menu_d, onglet2_menu_d, onglet3_menu_d, dimensions, fullscreen)
+		elif (s==2):
+			angle_camera(dimensions, fullscreen)
+		elif (s==3):
+			menu_2(titre_menu_2, onglet1_menu_2, onglet2_menu_2, onglet3_menu_2, 0,dimensions, fullscreen)
+
+	while (continuer is True):
+
+		texte_titre = font1.render(titre, 1, couleur_titre)
+
+		if (selection == 0):
+			texte_onglet1 = font3.render(onglet1, 1, couleur_onglets)
+			texte_onglet2 = font3.render(onglet2, 1, couleur_onglets)
+			texte_onglet3 = font3.render(onglet3, 1, couleur_onglets)
+		elif (selection == 1):
+			texte_onglet1 = font2.render(onglet1, 1, couleur_selection)
+			texte_onglet2 = font3.render(onglet2, 1, couleur_onglets)
+			texte_onglet3 = font3.render(onglet3, 1, couleur_onglets)
+		elif (selection == 2):
+			texte_onglet1 = font3.render(onglet1, 1, couleur_onglets)
+			texte_onglet2 = font2.render(onglet2, 1, couleur_selection)
+			texte_onglet3 = font3.render(onglet3, 1, couleur_onglets)
+		elif (selection == 3):
+			texte_onglet1 = font3.render(onglet1, 1, couleur_onglets)
+			texte_onglet2 = font3.render(onglet2, 1, couleur_onglets)
+			texte_onglet3 = font2.render(onglet3, 1, couleur_selection)
+
+		x_texte_titre = int((dimensions[0]-texte_titre.get_width())/2)
+		x_texte_onglet1 = int((dimensions[0]-texte_onglet1.get_width())/2)
+		x_texte_onglet2 = int((dimensions[0]-texte_onglet2.get_width())/2)
+		x_texte_onglet3 = int((dimensions[0]-texte_onglet3.get_width())/2)
+		y_texte_titre = int(((dimensions[1]/3)-texte_titre.get_height())/2)
+		y_texte_onglet1 = int(dimensions[1]/2)
+		y_texte_onglet2 = int(2*(dimensions[1]/3))
+		y_texte_onglet3 = int(5*(dimensions[1]/6))
+
+		fenetre.blit(fond, (0, 0))
+		fenetre.blit(texte_titre, (x_texte_titre, y_texte_titre))
+		fenetre.blit(texte_onglet1, (x_texte_onglet1, y_texte_onglet1))
+		fenetre.blit(texte_onglet2, (x_texte_onglet2, y_texte_onglet2))
+		fenetre.blit(texte_onglet3, (x_texte_onglet3, y_texte_onglet3))
+
+		for e in pygame.event.get():
+			if (e.type == QUIT):
+				continuer = False
+			if (e.type == KEYDOWN):
+				if (e.key == K_ESCAPE):
+					continuer = False
+				if (e.key == K_DOWN):
+					if (selection>=0) and (selection<3):
+						selection +=1
+					else:
+						selection = 1
+				elif (e.key == K_UP):
+					if (selection>1) and (selection<=3):
+						selection -=1
+					else:
+						selection = 3
+				elif (e.key == K_RETURN) or (e.key == K_KP_ENTER):
+					choix(selection)
+			elif (e.type == QUIT):
+				continuer = False
+
+		pygame.display.flip()
+
+	menu_quitter(dimensions, fullscreen) 
+
+###Gauthier (fait)
+	
+def menu_2(titre, onglet1, onglet2, onglet3, alpha, dimensions, fullscreen):
+
+	pygame.init()
+
+	if (fullscreen is True):
+		fenetre = pygame.display.set_mode(dimensions, FULLSCREEN)
+	else:
+		fenetre = pygame.display.set_mode(dimensions)
+
+	selection = 0
+	continuer = True
+
+	font1 = pygame.font.SysFont('calibri', 72, bold=True, italic=False)
+	font2 = pygame.font.SysFont('impact', 48, bold=False, italic=True)
+	font3 = pygame.font.SysFont('impact', 48, bold=False, italic=False)
+
+	couleur_titre = (0, 0, 255)
+	couleur_onglets = (0, 0, 0)
+	couleur_selection = (255, 0, 0)
+
+	fond = pygame.image.load('images/background.png').convert()
+
+	def choix(s):
+
+		if (s==1):
+			menu_jeu(titre_menu_j, onglet1_menu_j, onglet2_menu_j, onglet3_menu_j, onglet4_menu_j, 0, dimensions, fullscreen)
+		elif (s==2):
+			menu_parametres(titre_menu_p, onglet1_menu_p, onglet2_menu_p, onglet3_menu_p, dimensions, fullscreen)
+		elif (s==3):
+			menu_1(titre_menu_1, onglet1_menu_1, onglet2_menu_1, onglet3_menu_1, dimensions, None, fullscreen)
+
+	while (continuer is True):
+
+		texte_titre = font1.render(titre, 1, couleur_titre)
+
+		if (selection == 0):
+			texte_onglet1 = font3.render(onglet1, 1, couleur_onglets)
+			texte_onglet2 = font3.render(onglet2, 1, couleur_onglets)
+			texte_onglet3 = font3.render(onglet3, 1, couleur_onglets)
+		elif (selection == 1):
+			texte_onglet1 = font2.render(onglet1, 1, couleur_selection)
+			texte_onglet2 = font3.render(onglet2, 1, couleur_onglets)
+			texte_onglet3 = font3.render(onglet3, 1, couleur_onglets)
+		elif (selection == 2):
+			texte_onglet1 = font3.render(onglet1, 1, couleur_onglets)
+			texte_onglet2 = font2.render(onglet2, 1, couleur_selection)
+			texte_onglet3 = font3.render(onglet3, 1, couleur_onglets)
+		elif (selection == 3):
+			texte_onglet1 = font3.render(onglet1, 1, couleur_onglets)
+			texte_onglet2 = font3.render(onglet2, 1, couleur_onglets)
+			texte_onglet3 = font2.render(onglet3, 1, couleur_selection)
+
+		x_texte_titre = int((dimensions[0]-texte_titre.get_width())/2)
+		x_texte_onglet1 = int((dimensions[0]-texte_onglet1.get_width())/2)
+		x_texte_onglet2 = int((dimensions[0]-texte_onglet2.get_width())/2)
+		x_texte_onglet3 = int((dimensions[0]-texte_onglet3.get_width())/2)
+		y_texte_titre = int(((dimensions[1]/3)-texte_titre.get_height())/2)
+		y_texte_onglet1 = int(dimensions[1]/2)
+		y_texte_onglet2 = int(2*(dimensions[1]/3))
+		y_texte_onglet3 = int(5*(dimensions[1]/6))
+
+		fenetre.blit(fond, (0, 0))
+		fenetre.blit(texte_titre, (x_texte_titre, y_texte_titre))
+		fenetre.blit(texte_onglet1, (x_texte_onglet1, y_texte_onglet1))
+		fenetre.blit(texte_onglet2, (x_texte_onglet2, y_texte_onglet2))
+		fenetre.blit(texte_onglet3, (x_texte_onglet3, y_texte_onglet3))
+
+		for e in pygame.event.get():
+			if (e.type == QUIT):
+				continuer = False
+			if (e.type == KEYDOWN):
+				if (e.key == K_ESCAPE):
+					continuer = False
+				if (e.key == K_DOWN):
+					if (selection>=0) and (selection<3):
+						selection +=1
+					else:
+						selection = 1
+				elif (e.key == K_UP):
+					if (selection>1) and (selection<=3):
+						selection -=1
+					else:
+						selection = 3
+				elif (e.key == K_RETURN) or (e.key == K_KP_ENTER):
+					choix(selection)
+			elif (e.type == QUIT):
+				continuer = False
+
+		pygame.display.flip()
+
+	menu_quitter(dimensions, fullscreen) 
+
+###Gauthier (fait)
+
+def menu_1(titre, onglet1, onglet2, onglet3, dimensions, fenetre_2, fullscreen):
+
+	pygame.init()
+
+	if (fenetre_2 is not None):
+		fenetre_2.destroy()
+
+	if (fullscreen is True):
+		fenetre = pygame.display.set_mode(dimensions, FULLSCREEN)
+	else:
+		fenetre = pygame.display.set_mode(dimensions)
+
+	selection = 0
+	continuer = True
+
+	font1 = pygame.font.SysFont('calibri', 72, bold=True, italic=False)
+	font2 = pygame.font.SysFont('impact', 48, bold=False, italic=True)
+	font3 = pygame.font.SysFont('impact', 48, bold=False, italic=False)
+
+	couleur_titre = (0, 0, 255)
+	couleur_onglets = (0, 0, 0)
+	couleur_selection = (255, 0, 0)
+
+	fond = pygame.image.load('images/background.png').convert()
+
+	def choix(s):
+
+		if (s==1):
+			menu_2(titre_menu_2, onglet1_menu_2, onglet2_menu_2, onglet3_menu_2, 0, dimensions, fullscreen)
+		elif (s==2):
+			menu_quitter(dimensions, fullscreen)
+		elif (s==3):
+			print('regarder les informations du jeu')
+
+	while continuer is True:
+
+		texte_titre = font1.render(titre_menu_1, 1, couleur_titre)
+
+		if (selection == 0):
+			texte_onglet1 = font3.render(onglet1, 1, couleur_onglets)
+			texte_onglet2 = font3.render(onglet2, 1, couleur_onglets)
+			texte_onglet3 = font3.render(onglet3, 1, couleur_onglets)
+		elif (selection == 1):
+			texte_onglet1 = font2.render(onglet1, 1, couleur_selection)
+			texte_onglet2 = font3.render(onglet2, 1, couleur_onglets)
+			texte_onglet3 = font3.render(onglet3, 1, couleur_onglets)
+		elif (selection == 2):
+			texte_onglet1 = font3.render(onglet1, 1, couleur_onglets)
+			texte_onglet2 = font2.render(onglet2, 1, couleur_selection)
+			texte_onglet3 = font3.render(onglet3, 1, couleur_onglets)
+		elif (selection == 3):
+			texte_onglet1 = font3.render(onglet1, 1, couleur_onglets)
+			texte_onglet2 = font3.render(onglet2, 1, couleur_onglets)
+			texte_onglet3 = font2.render(onglet3, 1, couleur_selection)
+
+		x_texte_titre = int((dimensions[0]-texte_titre.get_width())/2)
+		x_texte_onglet1 = int((dimensions[0]-texte_onglet1.get_width())/2)
+		x_texte_onglet2 = int((dimensions[0]-texte_onglet2.get_width())/2)
+		x_texte_onglet3 = int((dimensions[0]-texte_onglet3.get_width())/2)
+		y_texte_titre = int(((dimensions[1]/3)-texte_titre.get_height())/2)
+		y_texte_onglet1 = int(dimensions[1]/2)
+		y_texte_onglet2 = int(2*(dimensions[1]/3))
+		y_texte_onglet3 = int(5*(dimensions[1]/6))
+
+		fenetre.blit(fond, (0, 0))
+		fenetre.blit(texte_titre, (x_texte_titre, y_texte_titre))
+		fenetre.blit(texte_onglet1, (x_texte_onglet1, y_texte_onglet1))
+		fenetre.blit(texte_onglet2, (x_texte_onglet2, y_texte_onglet2))
+		fenetre.blit(texte_onglet3, (x_texte_onglet3, y_texte_onglet3))
+
+		for e in pygame.event.get():
+			if (e.type == KEYDOWN):
+				if (e.key == K_DOWN):
+					if (selection>=0) and (selection<3):
+						selection +=1
+					else:
+						selection = 1
+				elif (e.key == K_UP):
+					if (selection>1) and (selection<=3):
+						selection -=1
+					else:
+						selection = 3
+				elif (e.key == K_RETURN) or (e.key == K_KP_ENTER):
+					choix(selection)
+			elif (e.type == QUIT):
+				continuer = False
+
+		pygame.display.flip()
+
+	menu_quitter(dimensions, fullscreen) 
+
