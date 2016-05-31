@@ -1,0 +1,32 @@
+dimensions2 = (640, 480)
+
+titre_menu_1 = 'BIENVENUE DANS PYKINECT GAME'
+onglet1_menu_1 = 'LANCER'
+onglet2_menu_1 = 'QUITTER'
+onglet3_menu_1 = 'INFORMATIONS'
+
+titre_menu_2 = 'MENU'
+onglet1_menu_2 = 'DEMARRER'
+onglet2_menu_2 = 'PARAMETRES'
+onglet3_menu_2 = 'RETOUR'
+
+titre_menu_p = 'PARAMETRES'
+onglet1_menu_p = '''DIMENSIONS DE L'ECRAN'''
+onglet2_menu_p = 'ANGLE DE LA CAMERA'
+onglet3_menu_p = 'RETOUR'
+
+titre_menu_d = '''DIMENSIONS DE L'ECRAN'''
+onglet1_menu_d = 'PLEIN ECRAN'
+onglet2_menu_d = 'FENETRE ET AJUSTABLE'
+onglet3_menu_d = 'RETOUR'
+
+titre_menu_j = 'images/titre_menu.png'
+onglet1_menu_j = 'images/bras.png'
+onglet2_menu_j = 'images/jambes.png'
+onglet3_menu_j = 'images/yoga.png'
+onglet4_menu_j = 'images/retour.png'
+
+titre_menu_n = 'NIVEAUX :'
+onglet1_menu_n = 'FACILE'
+onglet2_menu_n = 'MOYEN'
+onglet3_menu_n = 'DIFFICILE'
